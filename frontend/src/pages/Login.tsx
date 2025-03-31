@@ -1,17 +1,23 @@
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/stores/auth';
+import { login } from '@/services/auth';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login: setAuth } = useAuthStore();
 
   const onFinish = async (values: { username: string; password: string }) => {
     try {
-      // TODO: 实现登录逻辑
+      const { user, token } = await login(values);
+      setAuth(user, token);
       message.success('登录成功');
-      navigate('/');
+      const from = (location.state as any)?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error) {
-      message.error('登录失败');
+      // 错误处理已在request.ts中统一处理
     }
   };
 
