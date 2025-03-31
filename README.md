@@ -80,7 +80,36 @@ chmod +x init-db.sh
 
 ## 启动应用
 
-### 开发模式
+### 使用便捷脚本（推荐）
+
+我们提供了一个便捷脚本来管理项目的各种操作：
+
+```bash
+# 赋予脚本执行权限
+chmod +x /home/TasksHub/scripts/run-project.sh
+
+# 查看帮助信息
+/home/TasksHub/scripts/run-project.sh --help
+
+# 初始化数据库
+/home/TasksHub/scripts/run-project.sh --init
+
+# 启动所有服务
+/home/TasksHub/scripts/run-project.sh --start-all
+
+# 仅启动后端服务
+/home/TasksHub/scripts/run-project.sh --start-backend
+
+# 仅启动前端服务
+/home/TasksHub/scripts/run-project.sh --start-frontend
+
+# 数据库维护操作
+/home/TasksHub/scripts/run-project.sh --backup-db
+/home/TasksHub/scripts/run-project.sh --restore-db
+/home/TasksHub/scripts/run-project.sh --monitor-db
+```
+
+### 手动启动（开发模式）
 
 ```bash
 # 启动后端服务
