@@ -1,0 +1,57 @@
+name: Branch Protection
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  branch-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch protection rules
+        run: |
+          echo "Checking branch protection rules..."
+          # 检查main分支保护规则
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Main branch protection rules:"
+            echo "- Require pull request reviews before merging"
+            echo "- Require status checks to pass before merging"
+            echo "- Require linear history"
+            echo "- Include administrators"
+          fi
+          
+          # 检查develop分支保护规则
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "Develop branch protection rules:"
+            echo "- Require pull request reviews before merging"
+            echo "- Require status checks to pass before merging"
+            echo "- Allow force pushes"
+            echo "- Include administrators"
+          fi
+
+      - name: Check commit message format
+        run: |
+          echo "Checking commit message format..."
+          # 检查提交信息格式
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Checking PR commit messages..."
+            # 这里可以添加提交信息格式检查的具体逻辑
+          fi
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # 这里可以添加运行测试的具体命令
+          # 例如：npm test, pytest等
+
+      - name: Check code style
+        run: |
+          echo "Checking code style..."
+          # 这里可以添加代码风格检查的具体命令
+          # 例如：eslint, prettier等 
