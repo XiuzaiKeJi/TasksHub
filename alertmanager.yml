@@ -1,0 +1,40 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'slack-notifications'
+
+receivers:
+  - name: 'slack-notifications'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#monitoring-alerts'
+        send_resolved: true
+        title: '{{ template "slack.default.title" . }}'
+        text: '{{ template "slack.default.text" . }}'
+        actions:
+          - type: button
+            text: '查看详情'
+            url: '{{ .CommonAnnotations.dashboard }}'
+            style: 'primary'
+
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'ops@taskshub.com'
+        from: 'alertmanager@taskshub.com'
+        smarthost: 'smtp.taskshub.com:587'
+        auth_username: 'alertmanager'
+        auth_password: 'your-password'
+        send_resolved: true
+        html: '{{ template "email.default.html" . }}'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service'] 
