@@ -1,0 +1,77 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR size
+        run: |
+          echo "Checking PR size..."
+          files_changed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | wc -l)
+          if [ $files_changed -gt 50 ]; then
+            echo "Warning: Large PR detected ($files_changed files changed)"
+            echo "Consider splitting this PR into smaller ones"
+          fi
+
+      - name: Check code style
+        run: |
+          echo "Checking code style..."
+          # 这里可以添加代码风格检查的具体命令
+          # 例如：npm run lint, python -m flake8等
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # 这里可以添加运行测试的具体命令
+          # 例如：npm test, pytest等
+
+      - name: Check test coverage
+        run: |
+          echo "Checking test coverage..."
+          # 这里可以添加测试覆盖率检查的具体命令
+          # 例如：npm run coverage, pytest --cov等
+
+      - name: Security scan
+        run: |
+          echo "Running security scan..."
+          # 这里可以添加安全扫描的具体命令
+          # 例如：npm audit, bandit等
+
+      - name: Documentation check
+        run: |
+          echo "Checking documentation..."
+          # 检查是否更新了相关文档
+          files_changed=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          if echo "$files_changed" | grep -q "\.js\|\.ts\|\.py" && ! echo "$files_changed" | grep -q "\.md"; then
+            echo "Warning: Code files changed but no documentation updates found"
+            echo "Please check if documentation updates are needed"
+          fi
+
+      - name: Review checklist
+        run: |
+          echo "Generating review checklist..."
+          echo "## Review Checklist" >> $GITHUB_STEP_SUMMARY
+          echo "Please verify the following items:" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Code follows project style guide" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Tests are included and passing" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Documentation is updated" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Security considerations addressed" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Performance impact considered" >> $GITHUB_STEP_SUMMARY
+
+      - name: Review stats
+        run: |
+          echo "Generating review statistics..."
+          echo "## Review Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "- Files changed: $(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Lines added: $(git diff --numstat ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | awk '{sum+=$1} END{print sum}')" >> $GITHUB_STEP_SUMMARY
+          echo "- Lines deleted: $(git diff --numstat ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | awk '{sum+=$2} END{print sum}')" >> $GITHUB_STEP_SUMMARY 
