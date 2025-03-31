@@ -1,0 +1,48 @@
+name: Commit Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  commit-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check commit message format
+        run: |
+          echo "Checking commit message format..."
+          # 获取PR中的所有提交
+          for commit in $(git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
+            # 检查提交信息格式
+            if ! echo "$commit" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|chore|revert)(\([a-z]+\))?: .+'; then
+              echo "Error: Invalid commit message format: $commit"
+              echo "Commit message should follow the format: <type>(<scope>): <subject>"
+              exit 1
+            fi
+          done
+
+      - name: Check code style
+        run: |
+          echo "Checking code style..."
+          # 这里可以添加代码风格检查的具体命令
+          # 例如：npm run lint, python -m flake8等
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # 这里可以添加运行测试的具体命令
+          # 例如：npm test, pytest等
+
+      - name: Check dependencies
+        run: |
+          echo "Checking dependencies..."
+          # 这里可以添加依赖检查的具体命令
+          # 例如：npm audit, pip-audit等
+
+      - name: Security check
+        run: |
+          echo "Running security checks..."
+          # 这里可以添加安全检查的具体命令
+          # 例如：npm audit, bandit等 
