@@ -16,7 +16,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
-    "prisma:migrate:test": "prisma migrate deploy --schema=./prisma/schema.prisma --preview-feature"
+    "prisma:migrate:test": "prisma migrate deploy --schema=./prisma/schema.prisma --preview-feature",
+    "test:db:migrate": "prisma migrate deploy --schema=./prisma/test.prisma",
+    "test:db:seed": "ts-node prisma/seed-test.ts",
+    "test:db:reset": "prisma migrate reset --schema=./prisma/test.prisma --force",
+    "test:db:studio": "prisma studio --schema=./prisma/test.prisma"
   },
   "dependencies": {
     "express": "^4.18.2",

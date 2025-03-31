@@ -21,7 +21,11 @@ sleep 10
 
 # 运行数据库迁移
 echo "运行数据库迁移..."
-npm run prisma:migrate:test
+npm run test:db:migrate
+
+# 导入测试数据
+echo "导入测试数据..."
+npm run test:db:seed
 
 # 启动测试环境
 echo "启动测试环境..."
@@ -44,4 +48,6 @@ echo "测试环境初始化完成！"
 echo "应用地址: http://localhost:3000"
 echo "Prometheus 地址: http://localhost:9090"
 echo "Node Exporter 地址: http://localhost:9100"
-echo "监控规则已配置完成" 
+echo "Prisma Studio 地址: http://localhost:5555"
+echo "监控规则已配置完成"
+echo "测试数据已导入完成" 
