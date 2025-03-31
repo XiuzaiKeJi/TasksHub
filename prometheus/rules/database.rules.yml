@@ -1,0 +1,52 @@
+groups:
+  - name: database
+    rules:
+      # 连接数监控
+      - alert: HighDatabaseConnections
+        expr: mysql_global_status_connections > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "数据库连接数过高"
+          description: "数据库连接数超过1000，当前值: {{ $value }}"
+
+      # 慢查询监控
+      - alert: SlowQueriesDetected
+        expr: rate(mysql_global_status_slow_queries[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "检测到慢查询"
+          description: "每分钟慢查询数超过10个，当前值: {{ $value }}"
+
+      # 表空间使用率监控
+      - alert: HighTableSpaceUsage
+        expr: mysql_global_status_innodb_data_bytes / mysql_global_variables_innodb_data_file_path_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "表空间使用率过高"
+          description: "表空间使用率超过80%，当前值: {{ $value | humanizePercentage }}"
+
+      # 缓存命中率监控
+      - alert: LowBufferPoolHitRate
+        expr: rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]) / (rate(mysql_global_status_innodb_buffer_pool_read_requests[5m]) + rate(mysql_global_status_innodb_buffer_pool_reads[5m])) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "缓存命中率过低"
+          description: "InnoDB缓存命中率低于95%，当前值: {{ $value | humanizePercentage }}"
+
+      # 复制延迟监控
+      - alert: HighReplicationDelay
+        expr: mysql_slave_status_seconds_behind_master > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "复制延迟过高"
+          description: "主从复制延迟超过5分钟，当前值: {{ $value }}秒" 
