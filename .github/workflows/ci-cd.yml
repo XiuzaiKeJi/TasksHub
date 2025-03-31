@@ -11,7 +11,54 @@ on:
       - develop
 
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: 依赖扫描
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          
+      - name: 代码安全扫描
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+          
+      - name: 容器扫描
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: 依赖漏洞扫描
+        uses: actions/dependency-review-action@v2
+        with:
+          fail-on-severity: high
+          
+      - name: 安全配置检查
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+          config-file: ./.github/codeql/codeql-config.yml
+          
+      - name: 运行安全测试
+        run: |
+          npm run security:test
+          
+      - name: 上传安全报告
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.json
+          
   build-and-test:
+    needs: security
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -58,27 +105,8 @@ jobs:
               body: `## 构建状态\n${message}\n\n构建详情：\n- 分支：${context.ref}\n- 提交：${context.sha}\n- 运行时间：${context.run_duration}`
             });
 
-  security-scan:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run security scan
-        run: |
-          echo "Running security scan..."
-          # 这里添加安全扫描命令
-          # 例如：npm audit, snyk test等
-
-      - name: Run dependency scan
-        run: |
-          echo "Running dependency scan..."
-          # 这里添加依赖扫描命令
-          # 例如：npm audit, yarn audit等
-
   deploy:
-    needs: [build-and-test, security-scan]
+    needs: [build-and-test, security]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
