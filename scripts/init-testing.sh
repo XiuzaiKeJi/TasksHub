@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# 设置错误时退出
+set -e
+
+echo "开始初始化测试环境..."
+
+# 检查必要的工具
+command -v docker >/dev/null 2>&1 || { echo "需要 Docker 但未安装。请先安装 Docker。"; exit 1; }
+command -v docker-compose >/dev/null 2>&1 || { echo "需要 Docker Compose 但未安装。请先安装 Docker Compose。"; exit 1; }
+
+# 创建测试数据库
+echo "创建测试数据库..."
+docker-compose -f docker-compose.testing.yml up -d mysql
+sleep 10
+
+# 运行数据库迁移
+echo "运行数据库迁移..."
+npm run prisma:migrate:test
+
+# 启动测试环境
+echo "启动测试环境..."
+docker-compose -f docker-compose.testing.yml up -d
+
+# 等待服务启动
+echo "等待服务启动..."
+sleep 10
+
+# 检查服务状态
+echo "检查服务状态..."
+docker-compose -f docker-compose.testing.yml ps
+
+echo "测试环境初始化完成！"
+echo "应用地址: http://localhost:3000"
+echo "Prometheus 地址: http://localhost:9090"
+echo "Node Exporter 地址: http://localhost:9100" 
