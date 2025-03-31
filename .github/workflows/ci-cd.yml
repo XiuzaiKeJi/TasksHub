@@ -117,19 +117,69 @@ jobs:
           # 这里添加ECS部署命令
           # 例如：aws ecs update-service等
 
+      - name: 部署验证
+        run: |
+          echo "Verifying deployment..."
+          # 这里添加部署验证命令
+          # 例如：健康检查、功能测试等
+
+      - name: 部署回滚
+        if: failure()
+        run: |
+          echo "Deployment failed, initiating rollback..."
+          # 获取上一个成功的部署版本
+          PREVIOUS_VERSION=$(aws ecs describe-services --cluster taskshub-cluster --services taskshub-service --query 'services[0].deployments[?status==`PRIMARY`].taskDefinition' --output text)
+          
+          # 回滚到上一个版本
+          aws ecs update-service --cluster taskshub-cluster --service taskshub-service --task-definition $PREVIOUS_VERSION --force-new-deployment
+          
+          # 等待回滚完成
+          aws ecs wait services-stable --cluster taskshub-cluster --services taskshub-service
+          
+          echo "Rollback completed"
+
   notify:
     needs: [deploy]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Send notification
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "Deployment successful!"
-            # 这里添加成功通知
-            # 例如：发送Slack消息、邮件等
-          else
-            echo "Deployment failed!"
-            # 这里添加失败通知
-            # 例如：发送Slack消息、邮件等
-          fi 
+      - name: 发送部署通知
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = ${{ job.status }};
+            const message = status === 'success' 
+              ? '✅ 部署成功' 
+              : '❌ 部署失败';
+            
+            // 发送GitHub Issue评论
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 部署状态\n${message}\n\n部署详情：\n- 环境：${process.env.NODE_ENV}\n- 分支：${context.ref}\n- 提交：${context.sha}\n- 运行时间：${context.run_duration}`
+            });
+
+            // 发送Slack通知
+            const slackWebhook = process.env.SLACK_WEBHOOK_URL;
+            if (slackWebhook) {
+              await fetch(slackWebhook, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  text: `*部署通知*\n${message}\n\n*环境*：${process.env.NODE_ENV}\n*分支*：${context.ref}\n*提交*：${context.sha}\n*运行时间*：${context.run_duration}`
+                })
+              });
+            }
+
+            // 发送邮件通知
+            const emailConfig = {
+              to: process.env.NOTIFICATION_EMAIL,
+              subject: `[TasksHub] 部署${status === 'success' ? '成功' : '失败'}`,
+              text: `部署状态：${message}\n\n环境：${process.env.NODE_ENV}\n分支：${context.ref}\n提交：${context.sha}\n运行时间：${context.run_duration}`
+            };
+            
+            // 这里添加发送邮件的代码
+            // 例如：使用nodemailer或其他邮件服务 
