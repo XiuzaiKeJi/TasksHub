@@ -29,9 +29,10 @@ performance_schema = OFF        # 在低内存系统上禁用性能模式
 skip-host-cache                 # 禁用主机缓存表
 skip-name-resolve               # 禁用DNS解析
 
-# 查询缓存（仅适用于MySQL 5.7及更早版本，MySQL 8已移除此功能）
-# query_cache_size = 8M         # MySQL 5.7中可设置为较小值
-# query_cache_type = 1
+# MySQL 8.0特有优化选项
+innodb_dedicated_server = OFF   # 禁用自动配置
+innodb_buffer_pool_dump_at_shutdown = ON  # 关机时保存缓冲池状态
+innodb_buffer_pool_load_at_startup = ON   # 启动时加载缓冲池状态
 
 # 表缓存设置
 table_open_cache = 256          # 默认是2000左右
@@ -122,5 +123,19 @@ mysql -u root -p -e "SHOW VARIABLES LIKE '%buffer%';"
 2. **表优化**：`OPTIMIZE TABLE table_name;`
 3. **表碎片整理**：对于InnoDB表，可以使用ALTER TABLE命令
 4. **定期备份**：使用我们的备份脚本 `/home/TasksHub/backend/scripts/backup-db.sh`
+
+## 缓冲池预热
+
+MySQL 8.0提供了缓冲池转储和加载功能，可以加快重启后的性能恢复：
+
+```sql
+-- 手动保存缓冲池状态
+SET GLOBAL innodb_buffer_pool_dump_now = ON;
+
+-- 手动加载缓冲池状态
+SET GLOBAL innodb_buffer_pool_load_now = ON;
+```
+
+通过`innodb_buffer_pool_dump_at_shutdown`和`innodb_buffer_pool_load_at_startup`配置，这个过程可以自动化。
 
 通过以上优化措施，MySQL可以在低内存环境中稳定运行，同时保持合理的性能水平。 

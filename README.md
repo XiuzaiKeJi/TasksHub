@@ -228,6 +228,7 @@ cd backend/scripts
    - 按需启动MySQL服务：`systemctl start mysql`
    - 减少MySQL内存占用：优化`my.cnf`配置（见`docs/db-optimization.md`）
    - 考虑使用连接池限制并发连接数量
+   - 利用MySQL 8.0的缓冲池预热功能加快重启后的性能
 
 3. **IDE与开发工具**
    - 限制代码编辑器使用的扩展/插件数量
@@ -238,15 +239,82 @@ cd backend/scripts
    - 使用`VITE_MEMORY_LIMIT=true`环境变量以激活内存节约模式
    - 禁用source map生成：`sourcemap: false`
    - 减少热重载监听文件范围
+   - 对大型列表和表格使用虚拟滚动技术
+   - 使用React.memo和useMemo减少不必要的重渲染
 
 5. **后端开发优化**
    - 使用`--transpile-only`模式以减少类型检查开销
    - 设置`NODE_OPTIONS="--max-old-space-size=256"`限制Node.js内存使用
    - 减少中间件和不必要的依赖项
+   - 实现API响应缓存减少重复计算
 
 6. **监控与维护**
    - 定期使用`manage-services.sh status`检查服务状态
    - 监控内存使用：`free -h`和`ps aux --sort=-%mem | head -10`
    - 出现内存不足时，使用`manage-services.sh stop-safe`安全停止服务
 
+7. **前端构建优化**
+   - 使用代码分割减小初始加载包的大小
+   - 实现懒加载非关键组件
+   - 优化图片和静态资源
+   - 使用Gzip或Brotli压缩静态资源
+
 通过合理的资源管理和优化配置，本项目能够在资源受限的环境中稳定运行。 
+
+## 开发环境使用指南
+
+为确保项目开发环境稳定运行，请遵循以下指南：
+
+### 服务管理
+
+使用项目提供的脚本管理服务，避免直接使用npm或node命令：
+
+```bash
+# 查看服务状态
+./scripts/manage-services.sh status
+
+# 启动服务
+./scripts/manage-services.sh start-db       # 启动数据库
+./scripts/manage-services.sh start-backend  # 启动后端
+./scripts/manage-services.sh start-frontend # 启动前端
+
+# 安全停止服务（不影响IDE）
+./scripts/manage-services.sh stop-safe
+
+# 查看服务日志
+./scripts/manage-services.sh logs-backend
+./scripts/manage-services.sh logs-frontend
+
+# 内存优化模式（仅启动一个服务）
+./scripts/start-optimized.sh --backend-only
+./scripts/start-optimized.sh --frontend-only
+```
+
+### Git操作
+
+为避免Git操作卡顿，请使用以下命令：
+
+```bash
+# 使用Git包装脚本
+./scripts/git-wrapper.sh status
+./scripts/git-wrapper.sh branch
+
+# 或使用快速Git命令
+git faststatus    # 快速查看状态
+git fastcommit    # 快速提交（跳过钩子检查）
+git fastpush      # 快速推送
+```
+
+### 分支管理规范
+
+- 遵循功能分支→开发分支→主分支流程
+- 分支命名格式：`feature/TASK-ID-description`
+- 完成功能后及时合并并删除功能分支
+
+### 注意事项
+
+- 系统内存有限，避免同时运行多个服务
+- 不要使用可能导致IDE断链的命令（如kill -9）
+- 始终使用项目脚本停止服务，而非直接终止进程
+
+更多详细信息，请参考 `.cursor/agent-instructions.md` 
