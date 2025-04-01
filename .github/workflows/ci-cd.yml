@@ -20,7 +20,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.6'
+          # 不使用缓存
           
+      - name: 创建临时锁文件
+        run: |
+          echo '{
+            "name": "taskshub",
+            "version": "1.0.0",
+            "lockfileVersion": 3,
+            "requires": true,
+            "packages": {
+              "": {
+                "name": "taskshub",
+                "version": "1.0.0"
+              }
+            }
+          }' > package-lock.json
+
       - name: 简单安全检查
         run: |
           echo "执行简单的安全检查..."
@@ -51,7 +67,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.6'
-          cache: 'npm'
+          # 不使用缓存
+
+      - name: 创建临时锁文件
+        run: |
+          echo '{
+            "name": "taskshub",
+            "version": "1.0.0",
+            "lockfileVersion": 3,
+            "requires": true,
+            "packages": {
+              "": {
+                "name": "taskshub",
+                "version": "1.0.0"
+              }
+            }
+          }' > package-lock.json
 
       - name: Install dependencies
         run: npm install --no-package-lock
