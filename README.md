@@ -318,3 +318,26 @@ git fastpush      # 快速推送
 - 始终使用项目脚本停止服务，而非直接终止进程
 
 更多详细信息，请参考 `.cursor/agent-instructions.md` 
+
+## 简化开发流程
+
+为了提高开发效率，我们提供了简化的开发流程：
+
+```bash
+# 初始化开发环境
+./scripts/quick-dev.sh setup
+
+# 快速更新、提交和推送
+./scripts/quick-dev.sh update "更新描述"
+
+# 快速修复并推送
+./scripts/quick-dev.sh fix "修复描述"
+
+# 快速启动服务
+./scripts/quick-dev.sh start
+
+# 快速停止服务
+./scripts/quick-dev.sh stop
+```
+
+详细说明请参考 [简化开发指南](docs/SIMPLIFIED_GUIDE.md)。 
