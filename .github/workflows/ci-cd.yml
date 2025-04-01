@@ -93,7 +93,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const status = ${{ job.status }};
+            const status = '${{ job.status }}';
             const message = status === 'success' 
               ? '✅ 构建成功' 
               : '❌ 构建失败';
@@ -175,7 +175,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const status = ${{ job.status }};
+            const status = '${{ job.status }}';
             const message = status === 'success' 
               ? '✅ 部署成功' 
               : '❌ 部署失败';
