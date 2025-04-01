@@ -66,13 +66,14 @@ jobs:
         continue-on-error: true
         run: |
           echo "Running security tests..."
+          echo "安全测试报告" > security-report.txt
           # npm run security:test
           
       - name: 上传安全报告
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-report
-          path: README.md
+          path: security-report.txt
           
   build-and-test:
     needs: security
@@ -107,20 +108,12 @@ jobs:
 
       - name: 发送构建通知
         if: always()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const status = '${{ job.status }}';
-            const message = status === 'success' 
-              ? '✅ 构建成功' 
-              : '❌ 构建失败';
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `## 构建状态\n${message}\n\n构建详情：\n- 分支：${context.ref}\n- 提交：${context.sha}\n- 运行时间：${context.run_duration}`
-            });
+        run: |
+          echo "===== 构建状态 ====="
+          echo "状态: ${{ job.status }}"
+          echo "分支: ${{ github.ref }}"
+          echo "提交: ${{ github.sha }}"
+          echo "===================="
 
   deploy:
     needs: [build-and-test, security]
@@ -189,22 +182,10 @@ jobs:
     if: always()
     steps:
       - name: 发送部署通知
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const status = '${{ job.status }}';
-            const message = status === 'success' 
-              ? '✅ 部署成功' 
-              : '❌ 部署失败';
-            
-            // 只发送GitHub Issue评论
-            if (context.issue && context.issue.number) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `## 部署状态\n${message}\n\n部署详情：\n- 环境：${process.env.NODE_ENV || 'production'}\n- 分支：${context.ref}\n- 提交：${context.sha}`
-              });
-            } else {
-              console.log('Not a pull request, skipping comment creation');
-            } 
+        run: |
+          echo "===== 部署状态 ====="
+          echo "状态: ${{ job.status }}"
+          echo "环境: production"
+          echo "分支: ${{ github.ref }}"
+          echo "提交: ${{ github.sha }}"
+          echo "====================" 
