@@ -80,7 +80,44 @@ chmod +x init-db.sh
 
 ## 启动应用
 
-### 使用便捷脚本（推荐）
+### 低内存环境优化方案（推荐）
+
+对于内存限制较低的服务器（2GB或更低），我们提供了内存优化的服务管理脚本：
+
+```bash
+# 赋予脚本执行权限
+chmod +x /home/TasksHub/scripts/manage-services.sh
+
+# 查看帮助信息
+/home/TasksHub/scripts/manage-services.sh help
+
+# 单独启动前端服务（优化内存使用）
+/home/TasksHub/scripts/manage-services.sh start-frontend
+
+# 单独启动后端服务（优化内存使用）
+/home/TasksHub/scripts/manage-services.sh start-backend
+
+# 检查服务状态与资源使用
+/home/TasksHub/scripts/manage-services.sh status
+
+# 安全停止所有服务（不影响IDE）
+/home/TasksHub/scripts/manage-services.sh stop-safe
+
+# 查看前端或后端日志
+/home/TasksHub/scripts/manage-services.sh logs-frontend
+/home/TasksHub/scripts/manage-services.sh logs-backend
+
+# 查看内存状态
+/home/TasksHub/scripts/manage-services.sh memory
+```
+
+内存优化配置说明：
+- 前端服务：限制Node.js内存为256MB，禁用生成sourcemap
+- 后端服务：限制Node.js内存为256MB，使用transpile-only模式减少类型检查开销
+- 分离启动：推荐根据需要单独启动前端或后端，不要同时运行
+- 服务监控：通过status命令监控服务运行状态和内存使用情况
+
+### 使用便捷脚本（常规环境）
 
 我们提供了一个便捷脚本来管理项目的各种操作：
 
@@ -175,3 +212,41 @@ cd backend/scripts
 ## 许可证
 
 本项目采用 MIT 许可证 
+
+## 性能优化建议
+
+### 资源限制环境下的优化策略
+
+对于资源受限的开发或生产环境（如内存小于2GB的服务器），我们建议采取以下策略：
+
+1. **分离服务运行**
+   - 使用`manage-services.sh`脚本分别启动前端和后端
+   - 在不需要前端开发时，只启动后端服务
+   - 在不需要后端开发时，只启动前端服务
+
+2. **数据库优化**
+   - 按需启动MySQL服务：`systemctl start mysql`
+   - 减少MySQL内存占用：优化`my.cnf`配置（见`docs/db-optimization.md`）
+   - 考虑使用连接池限制并发连接数量
+
+3. **IDE与开发工具**
+   - 限制代码编辑器使用的扩展/插件数量
+   - 关闭自动类型检查，改为手动触发
+   - 关闭即时语法检查和代码建议功能
+
+4. **前端开发优化**
+   - 使用`VITE_MEMORY_LIMIT=true`环境变量以激活内存节约模式
+   - 禁用source map生成：`sourcemap: false`
+   - 减少热重载监听文件范围
+
+5. **后端开发优化**
+   - 使用`--transpile-only`模式以减少类型检查开销
+   - 设置`NODE_OPTIONS="--max-old-space-size=256"`限制Node.js内存使用
+   - 减少中间件和不必要的依赖项
+
+6. **监控与维护**
+   - 定期使用`manage-services.sh status`检查服务状态
+   - 监控内存使用：`free -h`和`ps aux --sort=-%mem | head -10`
+   - 出现内存不足时，使用`manage-services.sh stop-safe`安全停止服务
+
+通过合理的资源管理和优化配置，本项目能够在资源受限的环境中稳定运行。 
